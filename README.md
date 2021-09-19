@@ -32,8 +32,8 @@ import { makeRoute } from "react-make-route";
 
 const [useBlogPostRoute, BlogPostRoute] = makeRoute({
   path: "/posts/:postId",
-  paramsMappings: { out: { postId: Number } }
-})
+  paramsMappings: { out: { postId: Number } },
+});
 
 function App() {
   return (
@@ -49,18 +49,19 @@ function App() {
 
 function BlogPost() {
   const exampleRoute = useExampleRoute();
-	const nextPostPath = exampleRoute.createPath({ postId: exampleRoute.params.postId + 1 })
+  const nextPostPath = exampleRoute.createPath({ postId: exampleRoute.params.postId + 1 });
 
   return (
-		<>
-			<div>Blog post id: {exampleRoute.params.postId}</div>
-			<div><NavLink to={nextPostPath}>Next post</NavLink></div>
-			<button onClick={() => exampleRoute.go({ postId: 0 })}>
-				go to first post
-			</button>
-		</>
+    <>
+      <div>Blog post id: {exampleRoute.params.postId}</div>
+      <div>
+        <NavLink to={nextPostPath}>Next post</NavLink>
+      </div>
+      <button onClick={() => exampleRoute.go({ postId: 0 })}>go to first post</button>
+    </>
   );
 }
+
 ```
 
 For more advanced examples and detailed explanation, [check the documentation]()!
