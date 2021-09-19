@@ -8,11 +8,12 @@ export function makeRoute<
   const { path, params: definedParams = {} } = data;
 
   function useRoute() {
-    function usePath(
-      providedParams?: Partial<Record<keyof ParamsType, string | number>>
-    ): string {
-      const routerParams = useParams<{ [key: string]: string }>();
+    const routerParams = useParams<{ [key: string]: string }>();
+    const history = useHistory();
 
+    function createPath(
+      providedParams: Partial<Record<keyof ParamsType, string | number>> = {}
+    ): string {
       if (!providedParams) {
         return path;
       }
@@ -39,13 +40,12 @@ export function makeRoute<
     function go(
       providedParams: Partial<Record<keyof ParamsType, string | number>>
     ): void {
-      const path = usePath(providedParams);
-      const history = useHistory();
+      const path = createPath(providedParams);
       history.push(path);
     }
 
     return {
-      usePath,
+      createPath,
       go,
     };
   }
