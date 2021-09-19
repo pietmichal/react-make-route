@@ -1,19 +1,6 @@
 import { useHistory, useParams, Route, RouteProps } from "react-router-dom";
-
-// It only works with `any`.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type ReturnTypes<T> = T extends Record<keyof T, (value: any) => any>
-  ? {
-      [K in keyof T]: ReturnType<T[K]>;
-    }
-  : never;
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type ReturnStrings<T> = T extends Record<keyof T, any>
-  ? {
-      [K in keyof T]: string;
-    }
-  : never;
+import { ReturnStrings } from "./utilities/ReturnStrings";
+import { ReturnTypes } from "./utilities/ReturnTypes";
 
 interface MakeRouteData<ParamsInputType, ParamsOutputType> {
   path: string;
