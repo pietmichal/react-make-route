@@ -9,6 +9,7 @@
   "scripts": {
     "prebuild": "rimraf ./dist",
     "build": "tsc",
+    "test:coverage": "jest --coverage",
     "test:watch": "jest --watch",
     "test": "jest",
     "lint": "eslint src/**/*.{ts,tsx}"

@@ -1,50 +1,105 @@
 import { useHistory, useParams, Route, RouteProps } from "react-router-dom";
 
+// It only works with `any`.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ReturnTypes<T> = T extends Record<keyof T, (value: any) => any>
+  ? {
+      [K in keyof T]: ReturnType<T[K]>;
+    }
+  : never;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ReturnStrings<T> = T extends Record<keyof T, any>
+  ? {
+      [K in keyof T]: string;
+    }
+  : never;
+
+interface MakeRouteData<ParamsInputType, ParamsOutputType> {
+  path: string;
+  paramsMappings: {
+    in?: Partial<ParamsInputType>;
+    out: ParamsOutputType;
+  };
+}
+
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function makeRoute<
-  PathType extends string,
-  ParamsType extends Record<keyof ParamsType, () => string | number>
->(data: { path: PathType; params?: ParamsType }) {
-  const { path, params: definedParams = {} } = data;
+  ParamsInputType extends {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    [K in keyof ParamsInputType]: (input: any) => string;
+  },
+  ParamsOutputType extends {
+    [K in keyof ParamsOutputType]: (input: string) => unknown;
+  }
+>(data: MakeRouteData<ParamsInputType, ParamsOutputType>) {
+  const {
+    path,
+    paramsMappings: { in: inMappings, out: outMappings },
+  } = data;
 
   function useRoute() {
-    const routerParams = useParams<{ [key: string]: string }>();
     const history = useHistory();
+    const routerParams = useParams<{ [key: string]: string }>();
 
-    function createPath(
-      providedParams: Partial<Record<keyof ParamsType, string | number>> = {}
-    ): string {
-      if (!providedParams) {
-        return path;
-      }
+    const currentRouteParams = Object.fromEntries(
+      Object.entries(outMappings).map((entry) => {
+        const [param] = entry;
+        const value = routerParams[param];
 
-      // FIXME: Make TS happier, it should know that param is keyof ParamsType.
-      const paramsToUse = Object.fromEntries(
-        // TODO: Use mapper
-        Object.entries(definedParams).map(([param]) => {
-          const value =
-            (providedParams[param as keyof ParamsType] as string | number) ||
-            routerParams[param];
-          return [param, String(value)];
+        if (!value) {
+          throw new Error(
+            `Route param ${param} not found! Make sure that you are using this hook within dedicated route.`
+          );
+        }
+
+        return [param, value] as [keyof ParamsOutputType, string];
+      })
+    ) as ReturnStrings<ParamsOutputType>;
+
+    const outParams = Object.fromEntries(
+      Object.entries(currentRouteParams).map((entry) => {
+        const [param, value] = entry as [keyof ParamsOutputType, string];
+        const mapper = outMappings[param];
+        return [param, mapper(value)];
+      })
+    ) as ReturnTypes<ParamsOutputType>;
+
+    function createPath(providedParams: Partial<ReturnTypes<ParamsOutputType>> = {}): string {
+      const inParams = Object.fromEntries(
+        Object.entries(currentRouteParams).map((entry) => {
+          const [param] = entry as [keyof ParamsOutputType, string];
+          const providedValue = providedParams[param as keyof ParamsOutputType];
+
+          if (providedValue) {
+            const inMapping = inMappings?.[param as unknown as keyof ParamsInputType];
+
+            if (inMapping) {
+              return [param, inMapping(providedValue)];
+            }
+
+            return [param, providedValue];
+          }
+
+          return entry;
         })
-      );
+      ) as ReturnStrings<ParamsOutputType>;
 
-      let newPath: string = path;
-      Object.entries(paramsToUse).forEach(([param, value]) => {
+      let newPath = path;
+      Object.entries(inParams).forEach(([param, value]) => {
         newPath = newPath.replace(":" + param, String(value));
       });
 
       return newPath;
     }
 
-    function go(
-      providedParams: Partial<Record<keyof ParamsType, string | number>>
-    ): void {
+    function go(providedParams: Partial<ReturnTypes<ParamsOutputType>> = {}): void {
       const path = createPath(providedParams);
       history.push(path);
     }
 
     return {
+      params: outParams,
       createPath,
       go,
     };
