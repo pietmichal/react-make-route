@@ -34,6 +34,7 @@ export function makeRoute<
         const [param] = entry;
         const value = routerParams[param];
 
+        // FIXME: This shouldn't error. It should be possible to use this hook if you want to navigate from one route to another.
         if (!value) {
           throw new Error(
             `Route param ${param} not found! Make sure that you are using this hook within dedicated route.`
