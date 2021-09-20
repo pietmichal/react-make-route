@@ -1,12 +1,17 @@
 import { useHistory, useParams, Route, RouteProps } from "react-router-dom";
+import { ReturnNullableStrings } from "./utilities/ReturnNullableStrings";
 import { ReturnStrings } from "./utilities/ReturnStrings";
 import { ReturnTypes } from "./utilities/ReturnTypes";
 
-interface MakeRouteData<ParamsInputType, ParamsOutputType> {
+interface MakeRouteData<ParamsInputType, ParamsOutputType, QueryParamsInputType, QueryParamsOutputType> {
   path: string;
   paramsMappings: {
     in?: Partial<ParamsInputType>;
     out: ParamsOutputType;
+  };
+  queryParamsMappings?: {
+    in?: QueryParamsInputType;
+    out: QueryParamsOutputType;
   };
 }
 
@@ -18,8 +23,15 @@ export function makeRoute<
   },
   ParamsOutputType extends {
     [K in keyof ParamsOutputType]: (input: string) => unknown;
+  },
+  QueryParamsInputType extends {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    [K in keyof QueryParamsInputType]: (input: any) => string;
+  },
+  QueryParamsOutputType extends {
+    [K in keyof QueryParamsOutputType]: (input: string) => unknown;
   }
->(data: MakeRouteData<ParamsInputType, ParamsOutputType>) {
+>(data: MakeRouteData<ParamsInputType, ParamsOutputType, QueryParamsInputType, QueryParamsOutputType>) {
   const {
     path,
     paramsMappings: { in: inMappings, out: outMappings },
@@ -33,25 +45,9 @@ export function makeRoute<
       Object.entries(outMappings).map((entry) => {
         const [param] = entry;
         const value = routerParams[param];
-
-        // FIXME: This shouldn't error. It should be possible to use this hook if you want to navigate from one route to another.
-        if (!value) {
-          throw new Error(
-            `Route param ${param} not found! Make sure that you are using this hook within dedicated route.`
-          );
-        }
-
-        return [param, value] as [keyof ParamsOutputType, string];
+        return [param, value] as [keyof ParamsOutputType, string | null];
       })
-    ) as ReturnStrings<ParamsOutputType>;
-
-    const outParams = Object.fromEntries(
-      Object.entries(currentRouteParams).map((entry) => {
-        const [param, value] = entry as [keyof ParamsOutputType, string];
-        const mapper = outMappings[param];
-        return [param, mapper(value)];
-      })
-    ) as ReturnTypes<ParamsOutputType>;
+    ) as ReturnNullableStrings<ParamsOutputType>;
 
     function createPath(providedParams: Partial<ReturnTypes<ParamsOutputType>> = {}): string {
       const inParams = Object.fromEntries(
@@ -86,8 +82,23 @@ export function makeRoute<
       history.push(path);
     }
 
+    function getParams() {
+      return Object.fromEntries(
+        Object.entries(currentRouteParams).map((entry) => {
+          const [param, value] = entry as [keyof ParamsOutputType, string | null];
+
+          if (!value) {
+            throw new Error(`Expected a value for param ${param}`);
+          }
+
+          const mapper = outMappings[param];
+          return [param, mapper(value)];
+        })
+      ) as ReturnTypes<ParamsOutputType>;
+    }
+
     return {
-      params: outParams,
+      getParams,
       createPath,
       go,
     };

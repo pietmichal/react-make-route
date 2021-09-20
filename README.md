@@ -53,7 +53,7 @@ function BlogPost() {
 
   return (
     <>
-      <div>Blog post id: {exampleRoute.params.postId}</div>
+      <div>Blog post id: {exampleRoute.getParams().postId}</div>
       <div>
         <NavLink to={nextPostPath}>Next post</NavLink>
       </div>

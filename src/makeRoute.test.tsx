@@ -161,7 +161,7 @@ describe("hook", () => {
     });
   });
 
-  describe("params", () => {
+  describe("getParams", () => {
     test("outputs mapped params from the current path", () => {
       const [useCommentRoute, CommentRoute] = makeRoute({
         path: "/users/:username/posts/:postId/comments/:commentId",
@@ -178,11 +178,30 @@ describe("hook", () => {
 
       const { result } = renderHook(() => useCommentRoute(), { wrapper });
 
-      expect(result.current.params).toEqual({
+      expect(result.current.getParams()).toEqual({
         username: "FOOBAR",
         postId: 100,
         commentId: "200",
       });
+    });
+
+    test("throws an error used within incompatible route", () => {
+      const [useCommentRoute, CommentRoute] = makeRoute({
+        path: "/users/:username/posts/:postId/comments/:commentId",
+        paramsMappings: {
+          out: { username: (input: string) => input.toUpperCase(), postId: Number, commentId: String },
+        },
+      });
+
+      const wrapper = (props: { children: ReactNode }) => (
+        <MemoryRouter initialEntries={["/posts/100/comments/200"]}>
+          <CommentRoute>{props.children}</CommentRoute>
+        </MemoryRouter>
+      );
+
+      const { result } = renderHook(() => useCommentRoute(), { wrapper });
+
+      expect(() => result.current.getParams()).toThrowError();
     });
   });
 });
