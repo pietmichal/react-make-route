@@ -1,6 +1,6 @@
 {
   "name": "react-make-route",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "main": "dist/index.js",
   "files": ["dist"],
   "repository": "https://github.com/pietmichal/react-make-route.git",
