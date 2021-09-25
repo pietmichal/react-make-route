@@ -1,5 +1,6 @@
 import { useHistory, useParams, useLocation } from "react-router-dom";
 import { ReturnNullableStrings } from "./utilities/ReturnNullableStrings";
+import { ReturnNullableTypes } from "./utilities/ReturnNullableTypes";
 import { ReturnStrings } from "./utilities/ReturnStrings";
 import { ReturnTypes } from "./utilities/ReturnTypes";
 
@@ -49,7 +50,7 @@ export function makeRoute<
 
     function createPath(
       providedParams: Partial<ReturnTypes<ParamsOutputType>> = {},
-      providedQueryParams: Partial<ReturnTypes<QueryParamsOutputType>> = {}
+      providedQueryParams: Partial<ReturnNullableTypes<QueryParamsOutputType>> = {}
     ): string {
       const inParams = Object.fromEntries(
         Object.entries(currentRouteParams).map((entry) => {
@@ -91,7 +92,7 @@ export function makeRoute<
 
     function go(
       providedParams: Partial<ReturnTypes<ParamsOutputType>> = {},
-      providedQueryParams: Partial<ReturnTypes<QueryParamsOutputType>> = {}
+      providedQueryParams: Partial<ReturnNullableTypes<QueryParamsOutputType>> = {}
     ): void {
       const path = createPath(providedParams, providedQueryParams);
       history.push(path);
