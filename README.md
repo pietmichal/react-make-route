@@ -33,6 +33,8 @@ For Yarn users:
 
 ## Basic Example
 
+Create routes and navigate between them.
+
 ```jsx
 import { BrowserRouter, Switch, Link } from "react-router-dom";
 import { makeRoute } from "react-make-route";
@@ -68,6 +70,8 @@ function About() {
 ```
 
 ## Advanced Example
+
+Create route with mappings. Retrieve params and query params. Create paths and utilise inheritance.
 
 ```jsx
 import { BrowserRouter, Switch, Link, Route } from "react-router-dom";
