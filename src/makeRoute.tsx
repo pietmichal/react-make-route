@@ -1,4 +1,4 @@
-import { useHistory, useParams, Route, RouteProps } from "react-router-dom";
+import { useHistory, useParams, Route, RouteProps, useLocation } from "react-router-dom";
 import { ReturnNullableStrings } from "./utilities/ReturnNullableStrings";
 import { ReturnStrings } from "./utilities/ReturnStrings";
 import { ReturnTypes } from "./utilities/ReturnTypes";
@@ -40,6 +40,7 @@ export function makeRoute<
   function useRoute() {
     const history = useHistory();
     const routerParams = useParams<{ [key: string]: string }>();
+    const routerQueryParams = Object.fromEntries(new URLSearchParams(useLocation().search).entries());
 
     const currentRouteParams = Object.fromEntries(
       Object.entries(outMappings).map((entry) => {
@@ -49,7 +50,10 @@ export function makeRoute<
       })
     ) as ReturnNullableStrings<ParamsOutputType>;
 
-    function createPath(providedParams: Partial<ReturnTypes<ParamsOutputType>> = {}): string {
+    function createPath(
+      providedParams: Partial<ReturnTypes<ParamsOutputType>> = {},
+      providedQueryParams: Partial<ReturnTypes<QueryParamsOutputType>> = {}
+    ): string {
       const inParams = Object.fromEntries(
         Object.entries(currentRouteParams).map((entry) => {
           const [param] = entry as [keyof ParamsOutputType, string];
@@ -74,11 +78,25 @@ export function makeRoute<
         newPath = newPath.replace(":" + param, String(value));
       });
 
-      return newPath;
+      // FIXME
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      const queryParams = new URLSearchParams({ ...routerQueryParams, ...providedQueryParams });
+      queryParams.forEach((value, key) => {
+        if (value === "null") {
+          queryParams.delete(key);
+        }
+      });
+      const pathQueryParams = queryParams.toString().length > 0 ? "?" + queryParams.toString() : "";
+
+      return newPath + pathQueryParams;
     }
 
-    function go(providedParams: Partial<ReturnTypes<ParamsOutputType>> = {}): void {
-      const path = createPath(providedParams);
+    function go(
+      providedParams: Partial<ReturnTypes<ParamsOutputType>> = {},
+      providedQueryParams: Partial<ReturnTypes<QueryParamsOutputType>> = {}
+    ): void {
+      const path = createPath(providedParams, providedQueryParams);
       history.push(path);
     }
 
