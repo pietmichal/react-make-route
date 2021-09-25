@@ -82,7 +82,7 @@ import { makeRoute } from "react-make-route";
 const [useBlogPostRoute, blogPostRoutePath] = makeRoute({
   path: "/posts/:postId",
   paramsMappings: { 
-    in: { postId: String } 
+    in: { postId: String },
     out: { postId: Number } 
   },
   queryParamsMappings: {
