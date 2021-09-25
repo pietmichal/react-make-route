@@ -1,69 +1,131 @@
 # react-make-route
 
-⚠️⚠️⚠️ This library haven't reached stable release yet! ⚠️⚠️⚠️
-
-## Links
-
-- [Documentation]()
-- [Introductory blog post]()
+> <h1>:warning: Work in progress.</h1> 
+> API will become stable after releasing version 1.0.0.
 
 ## The Problem
 
-React Router is narrowly focused. This requires developers to create their own abstractions to reduce repeatedness and enforce behavioral consistency in larger applications.
+Using React Router in larger apps requires a lot of repetition when dealing with parameters and types what forces developers to create their own abstraction.
 
 ## The Solution
 
-`react-make-style` introduces its own conventions allowing developers to focus on actual functionality of their applications. No more worrying about maintaing your routing abstraction.
+`react-make-style` brings an abstraction for common React Router operations and interactions.
 
 ## Features
 
-- `makeRoute` creates a route hook and route component based on provided data.
-- Route params and search params accept **in** and **out** mappings. Developers don't have to worry about having correct data in their components.
-- Created hook allows to create path, get params and navigate to the route. 
-- Fully bound to React's lifecycle to ensure consistency no matter how the router is configured.
-- Params and search params, by convention, are inherited from the current route. No need to get and validate params every single time you want to do anything related to routing. Search params can be forced to not to be inherited.
-- Written in TypeScript. No need to provide generics every single time you try to access params.
+- TypeScript support out of the box.
+- `makeRoute` function producing a hook providing means to interact with a specific route in the following ways:
+  - parameters retrieval
+  - query parameters retrieval
+  - parameters and query parameters inheritance
+  - path creation
+  - navigation  
+
+## Installation
+
+For NPM users:
+
+`npm install react-make-route`
+
+For Yarn users:
+
+`yarn add react-make-route`
 
 ## Basic Example
 
 ```jsx
-import { BrowserRouter, Switch, NavLink } from "react-router-dom";
+import { BrowserRouter, Switch, Link } from "react-router-dom";
 import { makeRoute } from "react-make-route";
 
-const [useBlogPostRoute, BlogPostRoute] = makeRoute({
+const [useInitialRoute, initialRoutePath] = makeRoute({ path: "/" });
+
+const [useAboutRoute, aboutRoutePath] = makeRoute({ path: "/about" });
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Switch>
+        <Route path={aboutRoutePath}>
+          <About />
+        </Route>
+        <Route path={initialRoutePath}>
+          <Initial />
+        </Route>
+      </Switch>
+    </BrowserRouter>
+  );
+}
+
+function Initial() {
+  const aboutRoute = useAboutRoute();
+  return <Link to={aboutRoute.createPath()}>Go to about page</Link>
+}
+
+function About() {
+  const initialRoute = useInitialRoute();
+  return <Link to={initialRoute.createPath()}>Go to initial page</Link>
+}
+```
+
+## Advanced Example
+
+```jsx
+import { BrowserRouter, Switch, Link, Route } from "react-router-dom";
+import { makeRoute } from "react-make-route";
+
+const [useBlogPostRoute, blogPostRoutePath] = makeRoute({
   path: "/posts/:postId",
-  paramsMappings: { out: { postId: Number } },
+  paramsMappings: { 
+    in: { postId: String } 
+    out: { postId: Number } 
+  },
+  queryParamsMappings: {
+    in: { showComments: (input) => input ? "true" : "false" }
+    out: { showComments: (input) => input === "true" ? true : false }
+  }
 });
 
 function App() {
   return (
     <BrowserRouter>
       <Switch>
-        <BlogPostRoute>
+        <Route path={blogPostRoutePath}>
           <BlogPost />
-        </BlogPostRoute>
+        </Route>
       </Switch>
     </BrowserRouter>
   );
 }
 
 function BlogPost() {
-  const exampleRoute = useExampleRoute();
-  const nextPostPath = exampleRoute.createPath({ postId: exampleRoute.params.postId + 1 });
+  const blogPostRoute = useBlogPostRoute();
+
+  // `postId` is a number because of mapping provided in `makeRoute` function!
+  const { postId } = blogPostRoute.getParams();
+
+  // `showComments` is a boolean or undefined
+  const { showComments } = blogPostRoute.getQueryParams();
+
+  const nextPostPath = exampleRoute.createPath({ postId: postId + 1 });
+  const previousPostPath = exampleRoute.createPath({ postId: postId - 1 });
 
   return (
     <>
-      <div>Blog post id: {exampleRoute.getParams().postId}</div>
+      <h1>Blog post id: {postId}</h1>
+      <Link to={previousPostPath}>Go to previous post</Link> or <Link to={nextPostPath}>go to next post</Link>
       <div>
-        <NavLink to={nextPostPath}>Next post</NavLink>
+        { /* `.go(params, queryParams)` navigates to the route programatically */ }
+        <button onClick={() => blogPostRoute.go({}, { showComments: true })}>
+          show comments
+        </button>
       </div>
-      <button onClick={() => exampleRoute.go({ postId: 0 })}>go to first post</button>
+      <div>
+        { /* providing `null` disables inheritance */ }
+        <button onClick={() => blogPostRoute.go({}, { showComments: null })}>
+          hide comments
+        </button>
+      </div>
     </>
   );
 }
-
 ```
-
-For more advanced examples and detailed explanation, [check the documentation]()!
-
-## Contributors
