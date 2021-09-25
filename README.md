@@ -86,7 +86,7 @@ const [useBlogPostRoute, blogPostRoutePath] = makeRoute({
     out: { postId: Number } 
   },
   queryParamsMappings: {
-    in: { showComments: (input) => input ? "true" : "false" }
+    in: { showComments: (input) => input ? "true" : "false" },
     out: { showComments: (input) => input === "true" ? true : false }
   }
 });
