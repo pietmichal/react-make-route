@@ -122,7 +122,22 @@ describe("path creation", () => {
     expect(result.current.createPath({ postId: 9001, commentId: 1337 })).toBe("/posts/9001/comments/1337");
   });
 
-  test.todo("query param mapping");
+  test("query params are mapped", () => {
+    const [useCommentRoute, commentRoutePath] = makeRoute({
+      path: "/posts/:postId/comments/:commentId",
+      paramsMappings: { out: { postId: Number, commentId: Number } },
+      queryParamsMappings: { in: { text: (input: string) => input + "9001" }, out: { text: String } },
+    });
+
+    const wrapper = (props: { children: ReactNode }) => (
+      <MemoryRouter initialEntries={["/posts/1/comments/1"]}>
+        <Route path={commentRoutePath}>{props.children}</Route>
+      </MemoryRouter>
+    );
+
+    const { result } = renderHook(() => useCommentRoute(), { wrapper });
+    expect(result.current.createPath({}, { text: "hello" })).toBe("/posts/1/comments/1?text=hello9001");
+  });
 });
 
 describe("navigation", () => {

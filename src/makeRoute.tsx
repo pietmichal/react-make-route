@@ -79,7 +79,20 @@ export function makeRoute<
       // FIXME
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      const queryParams = new URLSearchParams({ ...routerQueryParams, ...providedQueryParams });
+      const queryParams = new URLSearchParams({
+        ...routerQueryParams,
+        ...Object.fromEntries(
+          Object.entries(providedQueryParams).map(([key, value]) => {
+            const inMapping = data.queryParamsMappings?.in?.[key as keyof QueryParamsInputType];
+
+            if (inMapping) {
+              return [key, inMapping(value)];
+            }
+
+            return [key, value];
+          })
+        ),
+      });
       queryParams.forEach((value, key) => {
         if (!value || value === "null") {
           queryParams.delete(key);
