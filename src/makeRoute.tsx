@@ -5,7 +5,7 @@ import { ReturnTypes } from "./utilities/ReturnTypes";
 
 interface MakeRouteData<ParamsInputType, ParamsOutputType, QueryParamsInputType, QueryParamsOutputType> {
   path: string;
-  paramsMappings: {
+  paramsMappings?: {
     in?: Partial<ParamsInputType>;
     out: ParamsOutputType;
   };
@@ -32,10 +32,7 @@ export function makeRoute<
     [K in keyof QueryParamsOutputType]: (input: string) => unknown;
   }
 >(data: MakeRouteData<ParamsInputType, ParamsOutputType, QueryParamsInputType, QueryParamsOutputType>) {
-  const {
-    path,
-    paramsMappings: { in: inMappings, out: outMappings },
-  } = data;
+  const { path, paramsMappings: { in: inMappings, out: outMappings } = { out: {} as ParamsOutputType } } = data;
 
   function useRoute() {
     const history = useHistory();
