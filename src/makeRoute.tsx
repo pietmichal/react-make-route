@@ -36,7 +36,7 @@ export function makeRoute<
   const {
     path,
     paramsMappings: { in: inParamMappings, out: outParamMappings } = { out: {} as ParamsOutputType },
-    queryParamsMappings: { in: inQueryParamMappings, out: outQueryParamMappings } = {
+    queryParamsMappings: { out: outQueryParamMappings } = {
       out: {} as QueryParamsOutputType,
     },
   } = data;
