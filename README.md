@@ -1,6 +1,6 @@
 # react-make-route
 
-![GitHub package.json version (branch)](https://img.shields.io/github/package-json/v/pietmichal/react-make-route/main?style=for-the-badge)
+![GitHub package.json version (branch)](https://img.shields.io/github/package-json/v/pietmichal/react-make-route/main?style=for-the-badge) ![GitHub](https://img.shields.io/github/license/pietmichal/react-make-route?style=for-the-badge) ![npm](https://img.shields.io/npm/dt/react-make-route?style=for-the-badge)
 
 > <h1>:warning: Work in progress. Feedback is welcome!</h1> 
 > API will become stable after releasing version 1.0.0.
