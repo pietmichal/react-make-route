@@ -227,7 +227,9 @@ describe("navigation", () => {
     act(() => result.current.go({}));
     expect(history.location.pathname).toBe("/posts/1/comments/1aaa");
   });
+});
 
+describe("params retrieval", () => {
   test("outputs mapped params from the current path", () => {
     const [useCommentRoute, commentRoutePath] = makeRoute({
       path: "/users/:username/posts/:postId/comments/:commentId",
@@ -250,9 +252,7 @@ describe("navigation", () => {
       commentId: "200",
     });
   });
-});
 
-describe("params retrieval", () => {
   test("params retrieval throws an error when used within incompatible route", () => {
     const [useCommentRoute, commentRoutePath] = makeRoute({
       path: "/users/:username/posts/:postId/comments/:commentId",
@@ -272,22 +272,22 @@ describe("params retrieval", () => {
     expect(() => result.current.getParams()).toThrowError();
   });
 
-  test("params retrieval throws an error when used within incompatible route", () => {
+  test("outputs mapped query params from the current path", () => {
     const [useCommentRoute, commentRoutePath] = makeRoute({
-      path: "/users/:username/posts/:postId/comments/:commentId",
-      paramsMappings: {
-        out: { username: (input: string) => input.toUpperCase(), postId: Number, commentId: String },
-      },
+      path: "/test",
+      queryParamsMappings: { in: { text: String }, out: { text: (input: string) => input.toUpperCase() } },
     });
 
     const wrapper = (props: { children: ReactNode }) => (
-      <MemoryRouter initialEntries={["/posts/100/comments/200"]}>
+      <MemoryRouter initialEntries={["/test?text=hello"]}>
         <Route path={commentRoutePath}>{props.children}</Route>
       </MemoryRouter>
     );
 
     const { result } = renderHook(() => useCommentRoute(), { wrapper });
 
-    expect(() => result.current.getParams()).toThrowError();
+    expect(result.current.getQueryParams()).toEqual({
+      text: "HELLO",
+    });
   });
 });

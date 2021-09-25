@@ -33,7 +33,13 @@ export function makeRoute<
     [K in keyof QueryParamsOutputType]: (input: string) => unknown;
   }
 >(data: MakeRouteData<ParamsInputType, ParamsOutputType, QueryParamsInputType, QueryParamsOutputType>) {
-  const { path, paramsMappings: { in: inMappings, out: outMappings } = { out: {} as ParamsOutputType } } = data;
+  const {
+    path,
+    paramsMappings: { in: inParamMappings, out: outParamMappings } = { out: {} as ParamsOutputType },
+    queryParamsMappings: { in: inQueryParamMappings, out: outQueryParamMappings } = {
+      out: {} as QueryParamsOutputType,
+    },
+  } = data;
 
   function useRoute() {
     const history = useHistory();
@@ -41,12 +47,22 @@ export function makeRoute<
     const routerQueryParams = Object.fromEntries(new URLSearchParams(useLocation().search).entries());
 
     const currentRouteParams = Object.fromEntries(
-      Object.entries(outMappings).map((entry) => {
+      Object.entries(outParamMappings).map((entry) => {
         const [param] = entry;
         const value = routerParams[param];
         return [param, value] as [keyof ParamsOutputType, string | null];
       })
     ) as ReturnNullableStrings<ParamsOutputType>;
+
+    const currentRouteQueryParams = Object.fromEntries(
+      Object.entries(outQueryParamMappings)
+        .map((entry) => {
+          const [param] = entry;
+          const value = routerQueryParams[param];
+          return [param, value] as [keyof QueryParamsOutputType, string | null];
+        })
+        .filter((entry) => !!entry[1])
+    ) as ReturnStrings<ParamsOutputType>;
 
     function createPath(
       providedParams: Partial<ReturnTypes<ParamsOutputType>> = {},
@@ -58,7 +74,7 @@ export function makeRoute<
           const providedValue = providedParams[param as keyof ParamsOutputType];
 
           if (providedValue) {
-            const inMapping = inMappings?.[param as unknown as keyof ParamsInputType];
+            const inMapping = inParamMappings?.[param as unknown as keyof ParamsInputType];
 
             if (inMapping) {
               return [param, inMapping(providedValue)];
@@ -93,11 +109,13 @@ export function makeRoute<
           })
         ),
       });
+
       queryParams.forEach((value, key) => {
         if (!value || value === "null") {
           queryParams.delete(key);
         }
       });
+
       const pathQueryParams = queryParams.toString().length > 0 ? "?" + queryParams.toString() : "";
 
       return newPath + pathQueryParams;
@@ -120,14 +138,26 @@ export function makeRoute<
             throw new Error(`Expected a value for param ${param}`);
           }
 
-          const mapper = outMappings[param];
+          const mapper = outParamMappings[param];
           return [param, mapper(value)];
         })
       ) as ReturnTypes<ParamsOutputType>;
     }
 
+    function getQueryParams() {
+      return Object.fromEntries(
+        Object.entries(currentRouteQueryParams).map((entry) => {
+          const [param, value] = entry as [keyof QueryParamsOutputType, string];
+
+          const mapper = outQueryParamMappings[param];
+          return [param, mapper(value)];
+        })
+      ) as ReturnTypes<QueryParamsOutputType>;
+    }
+
     return {
       getParams,
+      getQueryParams,
       createPath,
       go,
     };
