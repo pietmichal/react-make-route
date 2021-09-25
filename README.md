@@ -1,6 +1,6 @@
 # react-make-route
 
-> <h1>:warning: Work in progress.</h1> 
+> <h1>:warning: Work in progress. Feedback is welcome!</h1> 
 > API will become stable after releasing version 1.0.0.
 
 ## The Problem
