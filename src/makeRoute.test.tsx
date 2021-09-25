@@ -1,46 +1,26 @@
 import { makeRoute } from "./makeRoute";
-import { render, screen, act } from "@testing-library/react";
-import { Router, MemoryRouter } from "react-router-dom";
+import { Router, MemoryRouter, Route } from "react-router-dom";
 import { createMemoryHistory } from "history";
-import { renderHook } from "@testing-library/react-hooks";
+import { renderHook, act } from "@testing-library/react-hooks";
 import { ReactNode } from "react";
 
-test("outputs a hook and route component tuple", () => {
-  const output = makeRoute({ path: "/hello", paramsMappings: { out: {} } });
+test("outputs a hook and path tuple", () => {
+  const output = makeRoute({ path: "/hello" });
   expect(output).toHaveLength(2);
   expect(output[0]).toBeDefined();
-  expect(output[1]).toBeDefined();
-});
-
-describe("route component", () => {
-  test("route component matches path defined during creation", () => {
-    const [, TestRoute] = makeRoute({ path: "/test-path", paramsMappings: { out: {} } });
-
-    const history = createMemoryHistory();
-
-    render(
-      <Router history={history}>
-        <TestRoute>content</TestRoute>
-      </Router>
-    );
-
-    expect(screen.queryByText("content")).toBeFalsy();
-
-    act(() => history.push("/test-path"));
-    expect(screen.queryByText("content")).toBeTruthy();
-  });
+  expect(output[1]).toBe("/hello");
 });
 
 describe("path creation", () => {
   test("allows path creation from provided params", () => {
-    const [useCommentRoute, CommentRoute] = makeRoute({
+    const [useCommentRoute, commentRoutePath] = makeRoute({
       path: "/posts/:postId/comments/:commentId",
       paramsMappings: { out: { postId: Number, commentId: Number } },
     });
 
     const wrapper = (props: { children: ReactNode }) => (
       <MemoryRouter initialEntries={["/posts/1/comments/1"]}>
-        <CommentRoute>{props.children}</CommentRoute>
+        <Route path={commentRoutePath}>{props.children}</Route>
       </MemoryRouter>
     );
 
@@ -49,14 +29,14 @@ describe("path creation", () => {
   });
 
   test("inhertis params from the current route when creating path without providing all params", () => {
-    const [useCommentRoute, CommentRoute] = makeRoute({
+    const [useCommentRoute, commentRoutePath] = makeRoute({
       path: "/posts/:postId/comments/:commentId",
       paramsMappings: { out: { postId: Number, commentId: Number } },
     });
 
     const wrapper = (props: { children: ReactNode }) => (
       <MemoryRouter initialEntries={["/posts/100/comments/200"]}>
-        <CommentRoute>{props.children}</CommentRoute>
+        <Route path={commentRoutePath}>{props.children}</Route>
       </MemoryRouter>
     );
 
@@ -69,7 +49,7 @@ describe("path creation", () => {
   });
 
   test("allows path creation from provided params and query params", () => {
-    const [useCommentRoute, CommentRoute] = makeRoute({
+    const [useCommentRoute, commentRoutePath] = makeRoute({
       path: "/posts/:postId/comments/:commentId",
       paramsMappings: { out: { postId: Number, commentId: Number } },
       queryParamsMappings: { out: { hideComments: Boolean } },
@@ -77,7 +57,7 @@ describe("path creation", () => {
 
     const wrapper = (props: { children: ReactNode }) => (
       <MemoryRouter initialEntries={["/posts/1/comments/1"]}>
-        <CommentRoute>{props.children}</CommentRoute>
+        <Route path={commentRoutePath}>{props.children}</Route>
       </MemoryRouter>
     );
 
@@ -88,7 +68,7 @@ describe("path creation", () => {
   });
 
   test("path inherits query params", () => {
-    const [useCommentRoute, CommentRoute] = makeRoute({
+    const [useCommentRoute, commentRoutePath] = makeRoute({
       path: "/posts/:postId/comments/:commentId",
       paramsMappings: { out: { postId: Number, commentId: Number } },
       queryParamsMappings: { out: { hideComments: Boolean } },
@@ -96,7 +76,7 @@ describe("path creation", () => {
 
     const wrapper = (props: { children: ReactNode }) => (
       <MemoryRouter initialEntries={["/posts/1/comments/1?hideComments=false"]}>
-        <CommentRoute>{props.children}</CommentRoute>
+        <Route path={commentRoutePath}>{props.children}</Route>
       </MemoryRouter>
     );
 
@@ -107,7 +87,7 @@ describe("path creation", () => {
   });
 
   test("path does not inherit query param if `null` is provided", () => {
-    const [useCommentRoute, CommentRoute] = makeRoute({
+    const [useCommentRoute, commentRoutePath] = makeRoute({
       path: "/posts/:postId/comments/:commentId",
       paramsMappings: { out: { postId: Number, commentId: Number } },
       queryParamsMappings: { out: { hideComments: (input: string) => (input === "true" ? true : false) } },
@@ -115,7 +95,7 @@ describe("path creation", () => {
 
     const wrapper = (props: { children: ReactNode }) => (
       <MemoryRouter initialEntries={["/posts/1/comments/1?hideComments=false"]}>
-        <CommentRoute>{props.children}</CommentRoute>
+        <Route path={commentRoutePath}>{props.children}</Route>
       </MemoryRouter>
     );
 
@@ -132,14 +112,14 @@ describe("navigation", () => {
       initialEntries: ["/posts/100/comments/200"],
     });
 
-    const [useCommentRoute, CommentRoute] = makeRoute({
+    const [useCommentRoute, commentRoutePath] = makeRoute({
       path: "/posts/:postId/comments/:commentId",
       paramsMappings: { out: { postId: Number, commentId: Number } },
     });
 
     const wrapper = (props: { children: ReactNode }) => (
       <Router history={history}>
-        <CommentRoute>{props.children}</CommentRoute>
+        <Route path={commentRoutePath}>{props.children}</Route>
       </Router>
     );
 
@@ -158,14 +138,14 @@ describe("navigation", () => {
       initialEntries: ["/posts/100/comments/200"],
     });
 
-    const [useCommentRoute, CommentRoute] = makeRoute({
+    const [useCommentRoute, commentRoutePath] = makeRoute({
       path: "/posts/:postId/comments/:commentId",
       paramsMappings: { out: { postId: Number, commentId: Number } },
     });
 
     const wrapper = (props: { children: ReactNode }) => (
       <Router history={history}>
-        <CommentRoute>{props.children}</CommentRoute>
+        <Route path={commentRoutePath}>{props.children}</Route>
       </Router>
     );
 
@@ -187,7 +167,7 @@ describe("navigation", () => {
       initialEntries: ["/posts/100/comments/200aaa"],
     });
 
-    const [useCommentRoute, CommentRoute] = makeRoute({
+    const [useCommentRoute, commentRoutePath] = makeRoute({
       path: "/posts/:postId/comments/:commentId",
       paramsMappings: {
         in: { commentId: (input: number) => String(input) + "aaa" },
@@ -197,7 +177,7 @@ describe("navigation", () => {
 
     const wrapper = (props: { children: ReactNode }) => (
       <Router history={history}>
-        <CommentRoute>{props.children}</CommentRoute>
+        <Route path={commentRoutePath}>{props.children}</Route>
       </Router>
     );
 
@@ -215,7 +195,7 @@ describe("navigation", () => {
   });
 
   test("outputs mapped params from the current path", () => {
-    const [useCommentRoute, CommentRoute] = makeRoute({
+    const [useCommentRoute, commentRoutePath] = makeRoute({
       path: "/users/:username/posts/:postId/comments/:commentId",
       paramsMappings: {
         out: { username: (input: string) => input.toUpperCase(), postId: Number, commentId: String },
@@ -224,7 +204,7 @@ describe("navigation", () => {
 
     const wrapper = (props: { children: ReactNode }) => (
       <MemoryRouter initialEntries={["/users/foobar/posts/100/comments/200"]}>
-        <CommentRoute>{props.children}</CommentRoute>
+        <Route path={commentRoutePath}>{props.children}</Route>
       </MemoryRouter>
     );
 
@@ -240,7 +220,7 @@ describe("navigation", () => {
 
 describe("params retrieval", () => {
   test("params retrieval throws an error when used within incompatible route", () => {
-    const [useCommentRoute, CommentRoute] = makeRoute({
+    const [useCommentRoute, commentRoutePath] = makeRoute({
       path: "/users/:username/posts/:postId/comments/:commentId",
       paramsMappings: {
         out: { username: (input: string) => input.toUpperCase(), postId: Number, commentId: String },
@@ -249,7 +229,7 @@ describe("params retrieval", () => {
 
     const wrapper = (props: { children: ReactNode }) => (
       <MemoryRouter initialEntries={["/posts/100/comments/200"]}>
-        <CommentRoute>{props.children}</CommentRoute>
+        <Route path={commentRoutePath}>{props.children}</Route>
       </MemoryRouter>
     );
 
@@ -259,7 +239,7 @@ describe("params retrieval", () => {
   });
 
   test("params retrieval throws an error when used within incompatible route", () => {
-    const [useCommentRoute, CommentRoute] = makeRoute({
+    const [useCommentRoute, commentRoutePath] = makeRoute({
       path: "/users/:username/posts/:postId/comments/:commentId",
       paramsMappings: {
         out: { username: (input: string) => input.toUpperCase(), postId: Number, commentId: String },
@@ -268,7 +248,7 @@ describe("params retrieval", () => {
 
     const wrapper = (props: { children: ReactNode }) => (
       <MemoryRouter initialEntries={["/posts/100/comments/200"]}>
-        <CommentRoute>{props.children}</CommentRoute>
+        <Route path={commentRoutePath}>{props.children}</Route>
       </MemoryRouter>
     );
 

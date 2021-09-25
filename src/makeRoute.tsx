@@ -1,4 +1,4 @@
-import { useHistory, useParams, Route, RouteProps, useLocation } from "react-router-dom";
+import { useHistory, useParams, useLocation } from "react-router-dom";
 import { ReturnNullableStrings } from "./utilities/ReturnNullableStrings";
 import { ReturnStrings } from "./utilities/ReturnStrings";
 import { ReturnTypes } from "./utilities/ReturnTypes";
@@ -119,9 +119,5 @@ export function makeRoute<
     };
   }
 
-  function RouteWithPath(props: Omit<RouteProps, "path">): JSX.Element {
-    return <Route path={path} {...props} />;
-  }
-
-  return [useRoute, RouteWithPath] as const;
+  return [useRoute, path] as const;
 }
