@@ -80,7 +80,7 @@ export function makeRoute<
       // @ts-ignore
       const queryParams = new URLSearchParams({ ...routerQueryParams, ...providedQueryParams });
       queryParams.forEach((value, key) => {
-        if (value === "null") {
+        if (!value || value === "null") {
           queryParams.delete(key);
         }
       });
